@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}İşlem Geçmişi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>İşlem Geçmişi</h1>
+</div>
+
+<div class="card">
+  {% if trades %}
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Zaman</th>
+        <th>Hisse</th>
+        <th>İşlem</th>
+        <th>Lot</th>
+        <th>Fiyat</th>
+        <th>Toplam</th>
+        <th>Komisyon</th>
+        <th>Kaynak</th>
+        <th>Mod</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in trades %}
+      <tr>
+        <td class="muted">{{ t.timestamp.strftime("%d/%m %H:%M") }}</td>
+        <td><strong>{{ t.symbol | replace(".IS","") }}</strong></td>
+        <td>
+          <span class="badge {% if t.side=='BUY' %}badge-green{% else %}badge-red{% endif %}">
+            {{ t.side }}
+          </span>
+        </td>
+        <td>{{ t.quantity }}</td>
+        <td>{{ "%.2f"|format(t.price) }} TL</td>
+        <td>{{ "%.0f"|format(t.total_cost) }} TL</td>
+        <td class="muted">{{ "%.2f"|format(t.commission) }} TL</td>
+        <td class="muted">{{ t.source }}</td>
+        <td><span class="badge badge-blue">{{ t.mode }}</span></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">Henüz işlem yapılmadı.</p>
+  {% endif %}
+</div>
+{% endblock %}

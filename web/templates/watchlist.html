@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}İzleme Listesi{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>İzleme Listesi</h1>
+</div>
+
+<div class="card" style="max-width:480px; margin-bottom:24px">
+  <form method="post" action="/watchlist/add">
+    <div class="form-group" style="display:flex; gap:8px">
+      <input type="text" name="symbol" placeholder="THYAO" class="form-control" style="text-transform:uppercase">
+      <button type="submit" class="btn btn-success">Ekle</button>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  {% if items %}
+  <table class="table">
+    <thead>
+      <tr><th>Sembol</th><th>Ekleyen</th><th>Tarih</th><th>Durum</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for item in items %}
+      <tr class="{% if not item.is_active %}muted{% endif %}">
+        <td><strong>{{ item.symbol | replace(".IS","") }}</strong></td>
+        <td>{{ item.added_by }}</td>
+        <td>{{ item.added_at.strftime("%d/%m/%Y") }}</td>
+        <td>
+          <span class="badge {% if item.is_active %}badge-green{% else %}badge-gray{% endif %}">
+            {% if item.is_active %}Aktif{% else %}Pasif{% endif %}
+          </span>
+        </td>
+        <td>
+          {% if item.is_active %}
+          <form method="post" action="/watchlist/remove/{{ item.symbol }}">
+            <button type="submit" class="btn btn-sm btn-danger">Çıkar</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="empty-state">İzleme listesi boş. Yukarıdan hisse ekleyin.</p>
+  {% endif %}
+</div>
+{% endblock %}

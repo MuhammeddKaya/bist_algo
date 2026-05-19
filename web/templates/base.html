@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BIST Algo - {% block title %}Dashboard{% endblock %}</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-brand">BIST Algo</div>
+    <div class="nav-links">
+      <a href="/" class="{% if request.url.path == '/' %}active{% endif %}">Dashboard</a>
+      <a href="/positions" class="{% if '/positions' in request.url.path %}active{% endif %}">Pozisyonlar</a>
+      <a href="/trades" class="{% if '/trades' in request.url.path %}active{% endif %}">İşlemler</a>
+      <a href="/ai-decisions" class="{% if '/ai-decisions' in request.url.path %}active{% endif %}">AI Kararları</a>
+      <a href="/manual" class="{% if '/manual' in request.url.path %}active{% endif %}">Manuel</a>
+      <a href="/watchlist" class="{% if '/watchlist' in request.url.path %}active{% endif %}">İzleme</a>
+    </div>
+    <div class="nav-status" id="nav-status">
+      <span class="status-dot" id="status-dot"></span>
+      <span id="status-text">Yükleniyor...</span>
+    </div>
+  </nav>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="/static/app.js"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Pozisyonlar{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Açık Pozisyonlar</h1>
+  <a href="/manual" class="btn btn-success">+ Manuel İşlem</a>
+</div>
+
+{% if positions %}
+<div class="card">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Hisse</th>
+        <th>Lot</th>
+        <th>Ort. Maliyet</th>
+        <th>Güncel Fiyat</th>
+        <th>Değer</th>
+        <th>P&L</th>
+        <th>Stop-Loss</th>
+        <th>Hedef</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in positions %}
+      <tr>
+        <td><strong>{{ p.symbol | replace(".IS","") }}</strong></td>
+        <td>{{ p.quantity }}</td>
+        <td>{{ "%.2f"|format(p.avg_cost) }} TL</td>
+        <td>{{ "%.2f"|format(p.current_price) if p.current_price else "—" }} TL</td>
+        <td>{{ "%.0f"|format(p.value) }} TL</td>
+        <td class="{% if p.pnl >= 0 %}text-green{% else %}text-red{% endif %}">
+          {{ "%+.0f"|format(p.pnl) }} TL
+          <small>({{ "%+.1f"|format(p.pnl_pct) }}%)</small>
+        </td>
+        <td class="text-red">{{ "%.2f"|format(p.stop_price) }} TL</td>
+        <td class="text-green">{{ "%.2f"|format(p.target_price) }} TL</td>
+        <td>
+          <form method="post" action="/positions/sell/{{ p.symbol }}" onsubmit="return confirm('{{ p.symbol }} pozisyonu kapatılsın mı?')">
+            <button type="submit" class="btn btn-sm btn-danger">SAT</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% else %}
+<div class="card">
+  <p class="empty-state">Açık pozisyon bulunmuyor.</p>
+</div>
+{% endif %}
+{% endblock %}

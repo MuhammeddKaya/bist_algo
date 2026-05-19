@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}AI Kararları{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>AI Karar Logu</h1>
+  <div class="filter-bar">
+    <a href="/ai-decisions" class="btn btn-sm {% if not action_filter %}btn-active{% endif %}">Tümü</a>
+    <a href="/ai-decisions?action=BUY" class="btn btn-sm {% if action_filter=='BUY' %}btn-active{% endif %}">AL</a>
+    <a href="/ai-decisions?action=SELL" class="btn btn-sm {% if action_filter=='SELL' %}btn-active{% endif %}">SAT</a>
+    <a href="/ai-decisions?action=HOLD" class="btn btn-sm {% if action_filter=='HOLD' %}btn-active{% endif %}">BEKLE</a>
+  </div>
+</div>
+
+<div class="card">
+  {% if decisions %}
+  <div class="decision-list">
+    {% for d in decisions %}
+    <details class="decision-item">
+      <summary>
+        <span class="decision-time muted">{{ d.created_at.strftime("%d/%m %H:%M:%S") }}</span>
+        <span class="decision-symbol"><strong>{{ d.symbol | replace(".IS","") }}</strong></span>
+        <span class="badge {% if d.action=='BUY' %}badge-green{% elif d.action=='SELL' %}badge-red{% else %}badge-gray{% endif %}">
+          {{ d.action }}
+        </span>
+        <span class="muted">Güven: {{ "%.0f"|format(d.confidence * 100) }}%</span>
+        {% if d.rsi %}<span class="muted small">RSI: {{ "%.1f"|format(d.rsi) }}</span>{% endif %}
+      </summary>
+      <div class="decision-detail">
+        <p><strong>Gerekçe:</strong> {{ d.reasoning }}</p>
+        <div class="indicator-row">
+          {% if d.rsi %}<span>RSI: <strong>{{ "%.1f"|format(d.rsi) }}</strong></span>{% endif %}
+          {% if d.macd_signal %}<span>MACD: <strong>{{ d.macd_signal }}</strong></span>{% endif %}
+          {% if d.volume_ratio %}<span>Hacim: <strong>{{ "%.2f"|format(d.volume_ratio) }}x</strong></span>{% endif %}
+        </div>
+      </div>
+    </details>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="empty-state">Henüz AI kararı yok.</p>
+  {% endif %}
+</div>
+{% endblock %}

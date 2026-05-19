@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Dashboard</h1>
+  <div class="bot-controls">
+    {% if bot_status == "RUNNING" %}
+      <span class="badge badge-green">Çalışıyor</span>
+      <form method="post" action="/bot/pause" style="display:inline">
+        <button type="submit" class="btn btn-warning">Duraklat</button>
+      </form>
+      <form method="post" action="/bot/stop" style="display:inline">
+        <button type="submit" class="btn btn-danger">Durdur</button>
+      </form>
+    {% elif bot_status == "PAUSED" %}
+      <span class="badge badge-yellow">Duraklatıldı</span>
+      <form method="post" action="/bot/start" style="display:inline">
+        <button type="submit" class="btn btn-success">Devam</button>
+      </form>
+    {% else %}
+      <span class="badge badge-gray">Durduruldu</span>
+      <form method="post" action="/bot/start" style="display:inline">
+        <button type="submit" class="btn btn-success">Başlat</button>
+      </form>
+    {% endif %}
+    <span class="badge {% if market_open %}badge-green{% else %}badge-gray{% endif %}">
+      Piyasa: {% if market_open %}Açık{% else %}Kapalı{% endif %}
+    </span>
+    <span class="badge badge-blue">{{ bot_mode | upper }}</span>
+  </div>
+</div>
+
+<div class="metrics-grid">
+  <div class="metric-card">
+    <div class="metric-label">Nakit</div>
+    <div class="metric-value" id="m-cash">
+      {{ "%.0f"|format(snapshot.cash) if snapshot else 0 }} TL
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Toplam Değer</div>
+    <div class="metric-value" id="m-total">
+      {{ "%.0f"|format(snapshot.total_value) if snapshot else 0 }} TL
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Günlük P&L</div>
+    <div class="metric-value {% if snapshot and snapshot.daily_pnl >= 0 %}text-green{% else %}text-red{% endif %}" id="m-pnl">
+      {% if snapshot %}
+        {{ "%+.0f"|format(snapshot.daily_pnl) }} TL
+        ({{ "%+.2f"|format(snapshot.daily_pnl_pct) }}%)
+      {% else %}0 TL{% endif %}
+    </div>
+  </div>
+  <div class="metric-card">
+    <div class="metric-label">Açık Pozisyon</div>
+    <div class="metric-value" id="m-positions">{{ positions | length }}</div>
+  </div>
+</div>
+
+<div class="section-grid">
+  <div class="card">
+    <h2>Portföy Değeri (Son 7 Gün)</h2>
+    <canvas id="pnl-chart" height="120"></canvas>
+  </div>
+
+  <div class="card">
+    <h2>Açık Pozisyonlar</h2>
+    {% if positions %}
+      <table class="table">
+        <thead>
+          <tr><th>Hisse</th><th>Lot</th><th>Ort. Maliyet</th><th>Durum</th></tr>
+        </thead>
+        <tbody>
+          {% for p in positions %}
+          <tr>
+            <td><strong>{{ p.symbol | replace(".IS","") }}</strong></td>
+            <td>{{ p.quantity }}</td>
+            <td>{{ "%.2f"|format(p.avg_cost) }} TL</td>
+            <td><a href="/positions" class="btn btn-sm">Detay</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty-state">Açık pozisyon yok</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card">
+  <h2>Son AI Kararları</h2>
+  {% if decisions %}
+    <table class="table">
+      <thead>
+        <tr><th>Zaman</th><th>Hisse</th><th>Karar</th><th>Güven</th><th>Gerekçe</th></tr>
+      </thead>
+      <tbody>
+        {% for d in decisions %}
+        <tr>
+          <td class="muted">{{ d.created_at.strftime("%H:%M") }}</td>
+          <td><strong>{{ d.symbol | replace(".IS","") }}</strong></td>
+          <td>
+            <span class="badge {% if d.action=='BUY' %}badge-green{% elif d.action=='SELL' %}badge-red{% else %}badge-gray{% endif %}">
+              {{ d.action }}
+            </span>
+          </td>
+          <td>{{ "%.0f"|format(d.confidence * 100) }}%</td>
+          <td class="muted small">{{ d.reasoning[:80] }}{% if d.reasoning|length > 80 %}...{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p class="empty-state">Henüz karar yok</p>
+  {% endif %}
+  <a href="/ai-decisions" class="btn btn-sm" style="margin-top:8px">Tümünü Gör</a>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script>
+const labels = {{ pnl_labels | tojson }};
+const values = {{ pnl_values | tojson }};
+if (labels.length > 0) {
+  new Chart(document.getElementById('pnl-chart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Portföy Değeri (TL)',
+        data: values,
+        borderColor: '#4ade80',
+        backgroundColor: 'rgba(74,222,128,0.1)',
+        tension: 0.3,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxTicksLimit: 8, color: '#9ca3af' }, grid: { color: '#1f2937' } },
+        y: { ticks: { color: '#9ca3af' }, grid: { color: '#1f2937' } }
+      }
+    }
+  });
+}
+</script>
+{% endblock %}

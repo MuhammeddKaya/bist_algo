@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(kill 7904)",
+      "Bash(pkill -f backtest.py)",
+      "Bash(pkill -f uvicorn)",
+      "Bash(.venv/bin/python backtest.py)",
+      "Bash(curl -s http://localhost:11434/api/tags)",
+      "Bash(python3 -m json.tool)",
+      "Bash(rm -f /home/kaya/Desktop/bist_algo/data/trading.db*)",
+      "Bash(sed -i 's/USE_AI       = False/USE_AI       = True/' /home/kaya/Desktop/bist_algo/backtest.py)",
+      "Bash(pkill -f \"backtest.py\")",
+      "Bash(kill 13470 17371)",
+      "Bash(mkdir -p /home/kaya/.claude/projects/-home-kaya-Desktop-bist-algo/memory)",
+      "Bash(ollama list *)"
+    ],
+    "additionalDirectories": [
+      "/home/kaya/.claude/projects/-home-kaya-Desktop-bist-algo/memory"
+    ]
+  }
+}
