@@ -124,12 +124,12 @@ def get_universe(top_n: int = 100, cache_saat: int = 12) -> list[str]:
     )
     print(f"tamamlandı — ilk 3: {[(s, f'{h:.0f}M') for s,h in sirali[:3]]}")
 
-    sonuc = [sym for sym, _ in sirali[:top_n]]
+    tam_liste = [sym for sym, _ in sirali]
 
     with open(cache_path, "w") as f:
-        f.write("\n".join(sonuc))
+        f.write("\n".join(tam_liste))
 
-    return sonuc
+    return tam_liste[:top_n]
 
 
 if __name__ == "__main__":

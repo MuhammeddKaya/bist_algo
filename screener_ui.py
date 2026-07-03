@@ -83,17 +83,29 @@ with st.sidebar:
 
     # Hisse ekleme
     st.subheader("➕ Hisse Ekle")
-    yeni_hisse = st.text_input("Sembol (örn: BURCE veya BURCE.IS)").strip().upper()
-    if st.button("Ekle", use_container_width=True) and yeni_hisse:
-        sym = yeni_hisse if yeni_hisse.endswith(".IS") else f"{yeni_hisse}.IS"
-        if sym not in st.session_state.ayar["ekstra"]:
-            st.session_state.ayar["ekstra"].append(sym)
-            if sym in st.session_state.ayar["devre_disi"]:
-                st.session_state.ayar["devre_disi"].remove(sym)
-            ayar_kaydet(st.session_state.ayar)
-            st.success(f"{sym} eklendi")
-        else:
-            st.info(f"{sym} zaten listede")
+    toplu_input = st.text_area(
+        "Semboller (virgül veya satır ile ayır)",
+        placeholder="BURCE, BAHKM\nMANAS\nKOZAL",
+        height=90,
+    ).strip().upper()
+    if st.button("Ekle", use_container_width=True) and toplu_input:
+        import re
+        kodlar = [k.strip() for k in re.split(r"[,\n\r]+", toplu_input) if k.strip()]
+        eklendi, zaten_var = [], []
+        for kod in kodlar:
+            sym = kod if kod.endswith(".IS") else f"{kod}.IS"
+            if sym not in st.session_state.ayar["ekstra"]:
+                st.session_state.ayar["ekstra"].append(sym)
+                if sym in st.session_state.ayar["devre_disi"]:
+                    st.session_state.ayar["devre_disi"].remove(sym)
+                eklendi.append(sym.replace(".IS", ""))
+            else:
+                zaten_var.append(sym.replace(".IS", ""))
+        ayar_kaydet(st.session_state.ayar)
+        if eklendi:
+            st.success(f"Eklendi: {', '.join(eklendi)}")
+        if zaten_var:
+            st.info(f"Zaten listede: {', '.join(zaten_var)}")
 
     # Ekstra hisseleri göster
     ekstra_listesi = st.session_state.ayar["ekstra"]
@@ -168,23 +180,24 @@ if calistir:
     durum = st.empty()
     baslangic = time.time()
 
-    # tara() fonksiyonunu progress bar ile sarmala
-    # -- orijinal tara() stdout'a yazıyor, biz burda sessiz çalıştırıp
-    #    sonuçları alıyoruz
+    def on_progress(i, total, sym):
+        pct = i / total
+        progress.progress(pct, text=f"[{i}/{total}] {sym.replace('.IS', '')} taranıyor...")
+
     import io, sys
     eski_stdout = sys.stdout
     sys.stdout = io.StringIO()
     try:
         sonuclar = tara(
             min_vol_m=min_hacim,
-            min_consensus=1,       # hepsini al, sonra filtrele
+            min_consensus=1,
             top_n=0,
             semboller=semboller,
+            on_progress=on_progress,
         )
     finally:
         sys.stdout = eski_stdout
 
-    # Progress'i tamamla
     progress.progress(1.0, text="Tamamlandı!")
     gecen = time.time() - baslangic
     st.session_state.tarama_suresi = (
@@ -247,7 +260,6 @@ if st.session_state.sonuclar is not None:
                 "RS20":     f"{s['rs20']:.2f} {rs20_ok}",
                 "RS5":      f"{s['rs5']:.2f} {rs5_ok}",
                 "Fiyat":    f"{s['fiyat']:.2f}",
-                "1g Hdf":   _hdf(s["p1g_label"],  s.get("hedef_1g",  0)),
                 "ATR Hdf":  _hdf(s["patr_label"], s.get("hedef_atr", 0)),
                 "Hacim":    f"{s['hacim_m']:.0f}M",
                 "_consensus": s["consensus"],

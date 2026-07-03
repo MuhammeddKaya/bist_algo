@@ -174,7 +174,7 @@ def atr14(df: pd.DataFrame, period: int = 14) -> float:
 
 
 def tara(min_vol_m: float = 5.0, min_consensus: int = 1, top_n: int = 0,
-         semboller: list = None) -> list[dict]:
+         semboller: list = None, on_progress=None) -> list[dict]:
 
     from ai_engine.ml_client import MLClient
     evren = semboller or BIST_EVREN
@@ -198,6 +198,8 @@ def tara(min_vol_m: float = 5.0, min_consensus: int = 1, top_n: int = 0,
 
     sonuclar = []
     for i, sym in enumerate(evren, 1):
+        if on_progress:
+            on_progress(i, len(evren), sym)
         print(f"  [{i:>2}/{len(evren)}] {sym:<12}", end=" ", flush=True)
 
         df = veri_yukle(sym)

@@ -12,7 +12,11 @@
       "Bash(pkill -f \"backtest.py\")",
       "Bash(kill 13470 17371)",
       "Bash(mkdir -p /home/kaya/.claude/projects/-home-kaya-Desktop-bist-algo/memory)",
-      "Bash(ollama list *)"
+      "Bash(ollama list *)",
+      "Bash(xdg-open http://localhost:8502)",
+      "Bash(cat /tmp/st.log 2>/dev/null || echo \"log yok\")",
+      "Read(//tmp/**)",
+      "Bash(cat /tmp/st2.log)"
     ],
     "additionalDirectories": [
       "/home/kaya/.claude/projects/-home-kaya-Desktop-bist-algo/memory"
